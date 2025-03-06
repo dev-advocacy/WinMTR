@@ -177,7 +177,7 @@ void WinMTRDialog::SaveDataListToFile(const std::list<data>& datalist, const CSt
 	if (isNewFile)
 	{
 		CString header;
-		header += _T("Time (UTC)\t");
+		header += _T("Date (UTC)\tTime (UTC)\t");
 		for (int i = 0; i < MTR_NR_COLS; ++i)
 		{
 			header += MTR_COLS[i];
@@ -195,15 +195,26 @@ void WinMTRDialog::SaveDataListToFile(const std::list<data>& datalist, const CSt
 	gmtime_s(&now_tm1, &now_c1);
 
 	// Format the time as a string
-	std::ostringstream timeStream1;
-	timeStream1 << std::put_time(&now_tm1, "%Y-%m-%d-%M-%S");
-	CString currentTime1(timeStream1.str().c_str());
+	std::ostringstream timeStreamDate;	
+	timeStreamDate << std::put_time(&now_tm1, "%Y/%m/%d");
+	std::string currentTime1(timeStreamDate.str().c_str());
+
+	// Get milliseconds
+	auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now1.time_since_epoch()) % 1000;
+
+	// Format the time as a string with hours, minutes, seconds, and milliseconds
+	std::ostringstream timeStreamtime;
+	timeStreamtime << std::put_time(&now_tm1, "%H:%M:%S") << '.' << std::setw(3) << std::setfill('0') << now_ms.count();
+	std::string currentTime2 = timeStreamtime.str();
+
+	
 
 	for (const auto& entry : datalist)
 	{
 		CString line;
-		line.Format(_T("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"),
-			currentTime1,
+		line.Format(_T("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"),
+			entry.date.c_str(),
+			entry.time.c_str(),
 			entry.host.c_str(),
 			entry.nr_crt.c_str(),
 			entry.Percent.c_str(),
@@ -310,14 +321,14 @@ BOOL WinMTRDialog::OnInitDialog()
 	statusBar.SetIndicators(sbi,1);
 	statusBar.SetPaneInfo(0, statusBar.GetItemID(0),SBPS_STRETCH, NULL);
 	
-	// create Appnor button
-	if(m_buttonAppnor.Create(_T("www.appnor.com"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
-		m_buttonAppnor.SetURL("http://appnor.com/?utm_source=winmtr&utm_medium=desktop&utm_campaign=software");
-		if(statusBar.AddPane(1234,1)) {
-			statusBar.SetPaneWidth(statusBar.CommandToIndex(1234),100);
-			statusBar.AddPaneControl(m_buttonAppnor,1234,true);
-		}
-	}
+	//// create Appnor button
+	//if(m_buttonAppnor.Create(_T("www.appnor.com"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
+	//	m_buttonAppnor.SetURL("http://appnor.com/?utm_source=winmtr&utm_medium=desktop&utm_campaign=software");
+	//	if(statusBar.AddPane(1234,1)) {
+	//		statusBar.SetPaneWidth(statusBar.CommandToIndex(1234),100);
+	//		statusBar.AddPaneControl(m_buttonAppnor,1234,true);
+	//	}
+	//}
 	
 	for(int i = 0; i< MTR_NR_COLS; i++)
 		m_listMTR.InsertColumn(i, MTR_COLS[i], LVCFMT_LEFT, MTR_COL_LENGTH[i] , -1);
@@ -1044,6 +1055,16 @@ int WinMTRDialog::DisplayRedraw()
 		m_listMTR.SetItem(i, 8, LVIF_TEXT, buf, 0, 0, 0, 0);
 		
 		savedata.last = buf;
+
+		// create date day, month, year and time using hour, minute, second, minisecond, use UTC time
+		SYSTEMTIME st;
+		GetSystemTime(&st);
+		sprintf(buf, "%02d/%02d/%04d", st.wDay, st.wMonth, st.wYear);
+		savedata.date = buf;
+
+		// create date using hour, minute, second, minisecond, use UTC time
+		sprintf(buf, "%02d:%02d:%02d.%03d", st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+		savedata.time = buf;
 
 		datalist.push_back(savedata);
 		if (datalist.size() >= MAXLINE)
