@@ -17,7 +17,7 @@
 #include <iomanip>
 #include <ctime>
 
-#define MAXLINE 100000
+#define MAXLINE 10000
 
 #ifdef _DEBUG
 #	define TRACE_MSG(msg)									\
@@ -177,6 +177,7 @@ void WinMTRDialog::SaveDataListToFile(const std::list<data>& datalist, const CSt
 	if (isNewFile)
 	{
 		CString header;
+		header += _T("Time (UTC)\t");
 		for (int i = 0; i < MTR_NR_COLS; ++i)
 		{
 			header += MTR_COLS[i];
@@ -188,16 +189,15 @@ void WinMTRDialog::SaveDataListToFile(const std::list<data>& datalist, const CSt
 		header += _T("\n");
 		file.WriteString(header);
 	}
-	// Get current time in UTC
-	now = std::chrono::system_clock::now();
-	now_c = std::chrono::system_clock::to_time_t(now);
-	
-	gmtime_s(&now_tm, &now_c);
+	auto now1 = std::chrono::system_clock::now();
+	std::time_t now_c1 = std::chrono::system_clock::to_time_t(now1);
+	std::tm now_tm1;
+	gmtime_s(&now_tm1, &now_c1);
 
 	// Format the time as a string
-
-	timeStream << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S");
-	CString currentTime1(timeStream.str().c_str());
+	std::ostringstream timeStream1;
+	timeStream1 << std::put_time(&now_tm1, "%Y-%m-%d-%M-%S");
+	CString currentTime1(timeStream1.str().c_str());
 
 	for (const auto& entry : datalist)
 	{
@@ -358,7 +358,7 @@ BOOL WinMTRDialog::OnInitDialog()
 	// And position the control bars
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
 	
-	//InitRegistry();
+	InitRegistry();
 	
 	if(m_autostart) {
 		m_comboHost.SetWindowText(msz_defaulthostname);
@@ -1046,7 +1046,7 @@ int WinMTRDialog::DisplayRedraw()
 		savedata.last = buf;
 
 		datalist.push_back(savedata);
-		if (datalist.size() >= 1000)
+		if (datalist.size() >= MAXLINE)
 		{
 			CString exeDir = GetExecutableDirectory();
 			if (!exeDir.IsEmpty())
