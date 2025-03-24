@@ -13,18 +13,17 @@
 #ifndef WINMTRDIALOG_H_
 #define WINMTRDIALOG_H_
 
-#define WINMTR_DIALOG_TIMER 100
-
-#define WM_TRAYICON (WM_USER + 1)
-
+#include "pch.h"
 #include "WinMTRStatusBar.h"
 #include "WinMTRNet.h"
 #include "afxlinkctrl.h"
-#include <string>
-#include <list>
+
+
 
 class data {
 public:
+	std::string username;
+	std::string computername;
 	std::string host;
 	std::string nr_crt;
 	std::string Percent;
@@ -35,7 +34,6 @@ public:
 	std::string Worst;
 	std::string last;
 	std::string date;
-	std::string time;
 };
 
 //*****************************************************************************
@@ -109,49 +107,49 @@ public:
 	unsigned char		useIPv6;
 	bool				hasUseIPv6FromCmdLine;
 	WinMTRNet*			wmtrnet;
-	std::list<data>		datalist;
+	std::list<std::string>		datalist;
 
 	void SetHostName(const char* host);
 	void SetInterval(float i);
 	void SetPingSize(WORD ps);
 	void SetMaxLRU(int mlru);
 	void SetUseDNS(BOOL udns);
-	void SaveDataListToFile(const std::list<data>& datalist, const CString& folderPath);
+	void SaveDataListToFile(const std::list<std::string>& datalist, const CString& folderPath);
 	
 	void MinimizeToTray();
 	void RestoreFromTray();
 	void CreateTrayIcon();
 	void RemoveTrayIcon();
 	LRESULT OnTrayIcon(WPARAM wParam, LPARAM lParam);
-
+	std::string getCurrentUTCTimeISO8601();
 
 	HICON m_hIcon;
 	NOTIFYICONDATA m_nid;
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);
-	
+private:
 	int m_autostart;
 	char msz_defaulthostname[1000];
-	
 	bool m_bTrayIconVisible = true;
-	
+
+private:
+	void WriteDataEntry(CStdioFile* file, const std::string& entry);
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
+	virtual void OnCancel();
+
 	afx_msg void OnPaint();
 	afx_msg void OnSize(UINT, int, int);
 	afx_msg void OnSizing(UINT, LPRECT);
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnRestart();
-	afx_msg void OnOptions();
-	virtual void OnCancel();
-	
+	afx_msg void OnOptions();	
 	afx_msg void OnCTTC();
 	afx_msg void OnCHTC();
 	afx_msg void OnEXPT();
 	afx_msg void OnEXPH();
-	
 	afx_msg void OnDblclkList(NMHDR* pNMHDR, LRESULT* pResult);
-	
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnCbnSelchangeComboHost();

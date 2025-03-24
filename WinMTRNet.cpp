@@ -203,7 +203,7 @@ unsigned WINAPI TraceThread(void* p)
 		DWORD dwReplyCount = wmtrnet->lpfnIcmpSendEcho2(wmtrnet->hICMP, 0,NULL,NULL, current->address, achReqData, nDataLen, lpstIPInfo, achRepData, sizeof(achRepData), ECHO_REPLY_TIMEOUT);
 		wmtrnet->AddXmit(current->ttl - 1);
 		if(dwReplyCount) {
-			TRACE_MSG("TTL " << (int)current->ttl << " reply TTL " << (int)icmp_echo_reply.Options.Ttl << " Status " << icmp_echo_reply.Status << " Reply count " << dwReplyCount);
+			//GG TRACE_MSG("TTL " << (int)current->ttl << " reply TTL " << (int)icmp_echo_reply.Options.Ttl << " Status " << icmp_echo_reply.Status << " Reply count " << dwReplyCount);
 			switch(icmp_echo_reply.Status) {
 			case IP_SUCCESS:
 			case IP_TTL_EXPIRED_TRANSIT:

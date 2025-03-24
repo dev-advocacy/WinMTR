@@ -7,7 +7,32 @@
 #ifndef PCH_H
 #define PCH_H
 
-// add headers that you want to pre-compile here
+#include <string>
+#include <list>
+
+#define WINMTR_DIALOG_TIMER 100
+#define TIMER_DELAY 1000 * 60 // 1 minute
+#define WM_TRAYICON (WM_USER + 1)
+#define MAXHOOP 30
+const std::string FIELD_SEPARATOR = ",";
+
+
+
+#ifdef _DEBUG
+#	define TRACE_MSG(msg)									\
+	{														\
+	std::ostringstream dbg_msg(std::ostringstream::out);	\
+	dbg_msg << msg << std::endl;							\
+	OutputDebugString(dbg_msg.str().c_str());				\
+	}
+#	define new DEBUG_NEW
+#	undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#else
+#	define TRACE_MSG(msg)
+#endif
+
+
 #include "framework.h"
 
 #endif //PCH_H
